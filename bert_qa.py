@@ -52,6 +52,10 @@ from utils_squad import (read_squad_examples, convert_examples_to_features,
 # We've added it here for automated tests (see examples/test_examples.py file)
 from utils_squad_evaluate import EVAL_OPTS, main as evaluate_on_squad
 
+
+
+os.environ["CUDA_VISIBLE_DEVICES"]=""
+
 logger = logging.getLogger(__name__)
 
 ALL_MODELS = sum((tuple(conf.pretrained_config_archive_map.keys()) \
@@ -82,7 +86,12 @@ def train(args, train_dataset, model, tokenizer):
     args.train_batch_size = args.per_gpu_train_batch_size * max(1, args.n_gpu)
     print("args.train_batch_size", args.train_batch_size)
     train_sampler = RandomSampler(train_dataset) if args.local_rank == -1 else DistributedSampler(train_dataset)
-    train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
+    #train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
+    train_dataloader = DataLoader(train_dataset, shuffle=True, 
+                                  batch_size=args.train_batch_size,
+                                  num_workers=4,
+                                  drop_last=True)
+    print("length of dataset = ", len(train_dataloader))
 
     if args.max_steps > 0:
         t_total = args.max_steps
@@ -215,7 +224,12 @@ def evaluate(args, model, tokenizer, prefix=""):
     args.eval_batch_size = args.per_gpu_eval_batch_size * max(1, args.n_gpu)
     # Note that DistributedSampler samples randomly
     eval_sampler = SequentialSampler(dataset) if args.local_rank == -1 else DistributedSampler(dataset)
-    eval_dataloader = DataLoader(dataset, sampler=eval_sampler, batch_size=args.eval_batch_size)
+    #eval_dataloader = DataLoader(dataset, sampler=eval_sampler, batch_size=args.eval_batch_size)
+    eval_dataloader = DataLoader(dataset, 
+                                batch_size=args.eval_batch_size,
+                                shuffle=False,
+                                drop_last=True,
+                                num_workers=4)
 
     # Eval!
     logger.info("***** Running evaluation {} *****".format(prefix))
@@ -339,8 +353,8 @@ def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=Fal
 def main():
 
     args = ModelConfig()
-    #args.do_train = True
-    args.do_eval = True
+    args.do_train = True
+    #args.do_eval = True
     
     if os.path.exists(args.output_dir) and os.listdir(args.output_dir) and args.do_train and not args.overwrite_output_dir:
         raise ValueError("Output directory ({}) already exists and is not empty. Use --overwrite_output_dir to overcome.".format(args.output_dir))
@@ -389,11 +403,8 @@ def main():
     # config = config_class.from_pretrained(args.config_name)
     # tokenizer = tokenizer_class.from_pretrained(args.tokenizer_name)
 
-    print('\n================================')
     model = model_class.from_pretrained(args.model_name_or_path, config=config)
     
-    
-    print('\n================================')
     if args.local_rank == 0:
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 

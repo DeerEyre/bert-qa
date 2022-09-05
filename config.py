@@ -12,8 +12,8 @@ class ModelConfig:
         # print(self.pretrained_model_dir)
         # self.vocab_path = os.path.join(self.pretrained_model_dir, 'vocab.txt')
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        self.train_file = os.path.join(self.dataset_dir, 'cmrc2018_train.json')
-        self.predict_file = os.path.join(self.dataset_dir, 'cmrc2018_dev.json')
+        self.train_file = os.path.join(self.dataset_dir, 'cmrc2018_train_copy.json')
+        self.predict_file = os.path.join(self.dataset_dir, 'cmrc2018_dev_copy.json')
         self.model_save_dir = os.path.join(self.project_dir, 'cache')
         self.logs_save_dir = os.path.join(self.project_dir, 'logs')
         self.model_save_path = os.path.join(self.model_save_dir, 'model.pt')
@@ -31,7 +31,7 @@ class ModelConfig:
         self.per_gpu_train_batch_size = 32 # 8
         self.per_gpu_eval_batch_size = 8
         self.learning_rate = 3e-5
-        self.num_train_epochs = 1
+        self.num_train_epochs = 5
         self.max_steps = -1 # If null_score - best_non_null is greater than the threshold predict null.
         self.max_seq_length = 384
         self.max_query_length = 64
