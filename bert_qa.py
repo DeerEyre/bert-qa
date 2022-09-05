@@ -80,6 +80,7 @@ def train(args, train_dataset, model, tokenizer):
     if args.local_rank in [-1, 0]:
         tb_writer = SummaryWriter()
     args.train_batch_size = args.per_gpu_train_batch_size * max(1, args.n_gpu)
+    print("args.train_batch_size", args.train_batch_size)
     train_sampler = RandomSampler(train_dataset) if args.local_rank == -1 else DistributedSampler(train_dataset)
     train_dataloader = DataLoader(train_dataset, sampler=train_sampler, batch_size=args.train_batch_size)
 
@@ -105,15 +106,19 @@ def train(args, train_dataset, model, tokenizer):
             raise ImportError("Please install apex from https://www.github.com/nvidia/apex to use fp16 training.")
         model, optimizer = amp.initialize(model, optimizer, opt_level=args.fp16_opt_level)
 
+
     # multi-gpu training (should be after apex fp16 initialization)
     if args.n_gpu > 1:
-        model = torch.nn.DataParallel(model)
+        #model = torch.nn.DataParallel(model, device_ids = [1])  # 修改使用GPU的位置
+        model = torch.nn.DataParallel(model)  # 修改使用GPU的位置
 
     # Distributed training (should be after apex fp16 initialization)
     if args.local_rank != -1:
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.local_rank],
                                                           output_device=args.local_rank,
                                                           find_unused_parameters=True)
+
+
 
     # Train!
     logger.info("***** Running training *****")
@@ -133,8 +138,10 @@ def train(args, train_dataset, model, tokenizer):
     for _ in train_iterator:
         epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])
         for step, batch in enumerate(epoch_iterator):
-            model.train()
+            #model.train()
+            print(" args.device = 1", args.device)
             batch = tuple(t.to(args.device) for t in batch)
+            #batch = tuple(t for t in batch)
             inputs = {'input_ids':       batch[0],
                       'attention_mask':  batch[1], 
                       'token_type_ids':  None if args.model_type == 'xlm' else batch[2],  
@@ -217,6 +224,7 @@ def evaluate(args, model, tokenizer, prefix=""):
     all_results = []
     for batch in tqdm(eval_dataloader, desc="Evaluating"):
         model.eval()
+        print("args.devce = ", args.device)
         batch = tuple(t.to(args.device) for t in batch)
         with torch.no_grad():
             inputs = {'input_ids':      batch[0],
@@ -331,7 +339,8 @@ def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=Fal
 def main():
 
     args = ModelConfig()
-    args.do_train = True
+    #args.do_train = True
+    args.do_eval = True
     
     if os.path.exists(args.output_dir) and os.listdir(args.output_dir) and args.do_train and not args.overwrite_output_dir:
         raise ValueError("Output directory ({}) already exists and is not empty. Use --overwrite_output_dir to overcome.".format(args.output_dir))
@@ -347,6 +356,7 @@ def main():
     # Setup CUDA, GPU & distributed training
     if args.local_rank == -1 or args.no_cuda:
         device = torch.device("cuda" if torch.cuda.is_available() and not args.no_cuda else "cpu")
+        print("device = ", device)
         args.n_gpu = torch.cuda.device_count()
     else:  # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
         torch.cuda.set_device(args.local_rank)
@@ -387,6 +397,7 @@ def main():
     if args.local_rank == 0:
         torch.distributed.barrier()  # Make sure only the first process in distributed training will download model & vocab
 
+    print("model.device_args.device = ", device)
     model.to(args.device)
 
     logger.info("Training/evaluation parameters %s", args)

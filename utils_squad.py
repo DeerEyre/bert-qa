@@ -687,15 +687,15 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
                 all_predictions[example.qas_id] = best_non_null_entry.text
         all_nbest_json[example.qas_id] = nbest_json
 
-    with open(output_prediction_file, "w") as writer:
-        writer.write(json.dumps(all_predictions, indent=4) + "\n")
+    with open(output_prediction_file, "w", encoding="utf-8") as writer:
+        writer.write(json.dumps(all_predictions, indent=4, ensure_ascii=False) + "\n")
 
-    with open(output_nbest_file, "w") as writer:
-        writer.write(json.dumps(all_nbest_json, indent=4) + "\n")
+    with open(output_nbest_file, "w", encoding='utf-8') as writer:
+        writer.write(json.dumps(all_nbest_json, indent=4, ensure_ascii=False) + "\n")
 
     if version_2_with_negative:
-        with open(output_null_log_odds_file, "w") as writer:
-            writer.write(json.dumps(scores_diff_json, indent=4) + "\n")
+        with open(output_null_log_odds_file, "w", encoding='utf8') as writer:
+            writer.write(json.dumps(scores_diff_json, indent=4, ensure_ascii=False) + "\n")
 
     return all_predictions
 

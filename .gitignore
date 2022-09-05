@@ -7,3 +7,5 @@ cache*
 .idea/*
 output/*
 runs/*
+model/bert-base-chinese/pytorch_model.bin
+*.bin

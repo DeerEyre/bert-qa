@@ -51,11 +51,14 @@ class ModelConfig:
         self.logging_steps = 50
         self.save_steps = 50
         self.eval_all_checkpoints = False
-        self.no_cuda = True
         self.overwrite_output_dir = True
         self.overwrite_cache = False
         self.seed = 42
+
         self.local_rank = -1
+        self.no_cuda = True
+        #self.device = 'cpu'
+
         self.fp16 = False
         self.fp16_opt_level = "O1"  
         self.server_ip = ""
