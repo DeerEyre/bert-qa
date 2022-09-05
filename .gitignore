@@ -1,0 +1,9 @@
+lib/
+bin/
+include/
+.vscode
+__pycache__
+cache*
+.idea/*
+output/*
+runs/*
