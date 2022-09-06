@@ -40,6 +40,7 @@ class ModelConfig:
         self.doc_stride = 128
         self.output_dir = os.path.join(self.project_dir, "output")
         self.cache_dir = os.path.join(self.project_dir, "cache")
+        self.log_dir = os.path.join(self.project_dir, "logs")
         self.version_2_with_negative = False # If true, the SQuAD examples contain some that do not have an answer.'
         self.null_score_diff_threshold = 0.0 # If null_score - best_non_null is greater than the threshold predict null.
         self.gradient_accumulation_steps = 4  # If null_score - best_non_null is greater than the threshold predict null.
@@ -49,7 +50,7 @@ class ModelConfig:
         self.warmup_steps = 0
         self.n_best_size = 20  # If null_score - best_non_null is greater than the threshold predict null.
         self.verbose_logging = True
-        self.logging_steps = 50
+        self.logging_steps = 10
         self.save_steps = 50
         self.eval_all_checkpoints = False
         self.overwrite_output_dir = True

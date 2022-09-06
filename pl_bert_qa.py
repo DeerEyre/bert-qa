@@ -114,14 +114,20 @@ class BERTQA(pl.LightningModule):
         self.save_hyperparameters()
         self.automatic_optimization = False
         self.model = model
+        self.model.zero_grad()
         self.config = config 
         self.tokenizer = tokenizer
         self.test_results = []
+        
+        # training parameters
         self.t_total = t_total
+        self.global_step = 0
+        self.tr_loss = 0.0
+        self.logging_loss = 0.0
         
     
-    def forward(self, input):
-        return self.model(**input)
+    def forward(self, inputs):
+        return self.model(**inputs)
     
     # def train_dataloader(self):
     #     train_dataset = load_and_cache_examples(self.config, 
@@ -151,7 +157,7 @@ class BERTQA(pl.LightningModule):
                                                             evaluate=True, 
                                                             output_examples=True)
         self.config.eval_batch_size = self.config.per_gpu_eval_batch_size * max(1, self.config.n_gpu)
-        test_iter = DataLoader(self.dataset, shuffle=False, 
+        test_iter = DataLoader(dataset, shuffle=False, 
                                     batch_size=self.config.eval_batch_size,
                                     num_workers=4,
                                     drop_last=True)
@@ -167,8 +173,6 @@ class BERTQA(pl.LightningModule):
         logger.info("  Num Epochs = %d", self.config.num_train_epochs)
         logger.info("  Gradient Accumulation steps = %d", self.config.gradient_accumulation_steps)
 
-        global_step = 0
-        tr_loss, logging_loss = 0.0, 0.0
         
         batch = tuple(t for t in batch)
         inputs = {'input_ids':     batch[0],
@@ -187,33 +191,34 @@ class BERTQA(pl.LightningModule):
 
         mlflow.log_metric("loss", loss)
         
-        tr_loss += loss.item()
+        self.tr_loss += loss.item()
         if (batch_idx + 1) % self.config.gradient_accumulation_steps == 0:
             self.optimizer.step()
             self.scheduler.step()  # Update learning rate schedule
             self.model.zero_grad()
-            global_step += 1
+            self.global_step += 1
             
-        
-        if self.config.logging_steps > 0 and global_step % self.config.logging_steps == 0:
-            # Log metrics
-            # if args.local_rank == -1 and args.evaluate_during_training:  # Only evaluate when single GPU otherwise metrics may not average well
-            #     results = evaluate(args, model, tokenizer)
-            #     for key, value in results.items():
-            #         tb_writer.add_scalar('eval_{}'.format(key), value, global_step)
-            mlflow.log_metric('lr', self.scheduler.get_lr()[0], global_step)
-            mlflow.log_metric('(tr_loss - log_loss)/log_steps', (tr_loss - logging_loss)/self.config.logging_steps, global_step)
-            logging_loss = tr_loss
+            if self.config.logging_steps > 0 and self.global_step % self.config.logging_steps == 0:
+                # Log metrics
+                # if args.local_rank == -1 and args.evaluate_during_training:  # Only evaluate when single GPU otherwise metrics may not average well
+                #     results = evaluate(args, model, tokenizer)
+                #     for key, value in results.items():
+                #         tb_writer.add_scalar('eval_{}'.format(key), value, global_step)
+                mlflow.log_metric('lr', self.scheduler.get_lr()[0], self.global_step)
+                mlflow.log_metric('(tr_loss - log_loss)/log_steps', (self.tr_loss - self.logging_loss)/self.config.logging_steps, self.global_step)
+                self.logging_loss = self.tr_loss
                     
-        mlflow.log_metric("training loss", tr_loss)
+        mlflow.log_metric("training loss", self.tr_loss)
         self.log("loss", loss,
                 on_step=True, prog_bar=True, logger=True)
-        self.log("training loss", tr_loss,
+        self.log("training loss", self.tr_loss,
                 on_epoch=True, prog_bar=True, logger=True)
         # self.log_dict({"loss": loss, "training loss": tr_loss}, prog_bar=True, logger=True)
         #print("loss = ", loss)
         #print("training loss = ", tr_loss)
-        logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
+        logger.info(" global_step = %s, average loss = %s", self.global_step, self.tr_loss)
+        
+        return {"loss": loss, 'tr_loss': self.tr_loss}
     
     def test_step(self, batch, batch_idx):
         # Eval!
@@ -313,7 +318,7 @@ def main():
     logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                         datefmt = '%a %d %b %Y %H:%M:%S',
                         level = logging.INFO if args.local_rank in [-1, 0] else logging.WARN,
-                        filename="pl_training.log",
+                        filename=os.path.join(args.log_dir, "pl_training.log"),
                         filemode='w')
     # Set seed
     set_seed(args)    
@@ -329,8 +334,9 @@ def main():
     
     if do_train:
         cur_time = dt.datetime.now().strftime("%H-%M-%S-%Y-%m-%d")
+        
         ckpt_callback_loss = ModelCheckpoint(
-                    monitor="loss", dirpath="./cache/", 
+                    monitor="loss", dirpath=args.cache_dir, 
                     filename=f'bert_QA_{cur_time}',
                     mode="min"
         )
