@@ -12,6 +12,7 @@ class ModelConfig:
         # print(self.pretrained_model_dir)
         # self.vocab_path = os.path.join(self.pretrained_model_dir, 'vocab.txt')
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        self.predict_fire_name = "cmrc2018_dev_copy"
         self.train_file = os.path.join(self.dataset_dir, 'cmrc2018_train_copy.json')
         self.predict_file = os.path.join(self.dataset_dir, 'cmrc2018_dev_copy.json')
         self.model_save_dir = os.path.join(self.project_dir, 'cache')
@@ -28,7 +29,7 @@ class ModelConfig:
         self.do_eval = False
         self.evaluate_during_training = False
         self.do_lower_case = False # If null_score - best_non_null is greater than the threshold predict null.
-        self.per_gpu_train_batch_size = 32 # 8
+        self.per_gpu_train_batch_size = 8 # 8
         self.per_gpu_eval_batch_size = 8
         self.learning_rate = 3e-5
         self.num_train_epochs = 5
@@ -41,7 +42,7 @@ class ModelConfig:
         self.cache_dir = os.path.join(self.project_dir, "cache")
         self.version_2_with_negative = False # If true, the SQuAD examples contain some that do not have an answer.'
         self.null_score_diff_threshold = 0.0 # If null_score - best_non_null is greater than the threshold predict null.
-        self.gradient_accumulation_steps = 1  # If null_score - best_non_null is greater than the threshold predict null.
+        self.gradient_accumulation_steps = 4  # If null_score - best_non_null is greater than the threshold predict null.
         self.weight_decay = 0.0
         self.adam_epsilon = 1e-8
         self.max_grad_norm = 1.0
@@ -56,8 +57,9 @@ class ModelConfig:
         self.seed = 42
 
         self.local_rank = -1
-        self.no_cuda = True
-        #self.device = 'cpu'
+        # self.no_cuda = True
+        self.device = 'cpu'
+        self.n_gpu = 0
 
         self.fp16 = False
         self.fp16_opt_level = "O1"  
