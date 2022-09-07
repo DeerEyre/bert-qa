@@ -43,7 +43,7 @@ class ModelConfig:
         self.log_dir = os.path.join(self.project_dir, "logs")
         self.version_2_with_negative = False # If true, the SQuAD examples contain some that do not have an answer.'
         self.null_score_diff_threshold = 0.0 # If null_score - best_non_null is greater than the threshold predict null.
-        self.gradient_accumulation_steps = 4  # If null_score - best_non_null is greater than the threshold predict null.
+        self.gradient_accumulation_steps = 32  # If null_score - best_non_null is greater than the threshold predict null.
         self.weight_decay = 0.0
         self.adam_epsilon = 1e-8
         self.max_grad_norm = 1.0
@@ -59,8 +59,8 @@ class ModelConfig:
 
         self.local_rank = -1
         # self.no_cuda = True
-        self.device = 'cpu'
-        self.n_gpu = 0
+        #self.device = 'cpu'
+        #self.n_gpu = 0
 
         self.fp16 = False
         self.fp16_opt_level = "O1"  

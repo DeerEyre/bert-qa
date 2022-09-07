@@ -11,7 +11,7 @@ import torch
 from torch.utils.data import DataLoader, TensorDataset
 from torch.optim import AdamW
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 # from pytorch_transformers import (WEIGHTS_NAME, BertConfig,
 #                                 BertForQuestionAnswering, BertTokenizer,
 #                                 XLMConfig, XLMForQuestionAnswering,
@@ -111,7 +111,7 @@ def load_and_cache_examples(args, tokenizer, evaluate=False, output_examples=Fal
 class BERTQA(pl.LightningModule):
     def __init__(self, config, model, tokenizer, t_total):
         super().__init__()
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=['model'], logger=True)
         self.automatic_optimization = False
         self._global_step = 0
         self._tr_loss = 0.0
@@ -193,20 +193,24 @@ class BERTQA(pl.LightningModule):
         
         self._tr_loss += loss.item()
         if (batch_idx + 1) % self.config.gradient_accumulation_steps == 0:
-            self.optimizer.step()
-            self.scheduler.step()  # Update learning rate schedule
+            logging.info("The gradient is accumulated, then update the parameters, the batch index is %d, the global step is %d", batch_idx, self._global_step)
+            #print(f"The gradient is accumulated, then update the parameters, the batch index is {batch_idx}, the global step is {self._global_step}")
+            self.optimizers().step()
+            self.lr_schedulers().step()
+            #self.lr_scheduler.step()
             self.model.zero_grad()
             self._global_step += 1
-            
-            if self.config.logging_steps > 0 and self._global_step % self.config.logging_steps == 0:
+            self._tr_loss = 0 # reset the state 
+
+            #if self.config.logging_steps > 0 and self._global_step % self.config.logging_steps == 0:
                 # Log metrics
                 # if args.local_rank == -1 and args.evaluate_during_training:  # Only evaluate when single GPU otherwise metrics may not average well
                 #     results = evaluate(args, model, tokenizer)
                 #     for key, value in results.items():
                 #         tb_writer.add_scalar('eval_{}'.format(key), value, global_step)
-                mlflow.log_metric('lr', self.scheduler.get_lr()[0], self._global_step)
-                mlflow.log_metric('(tr_loss - log_loss)/log_steps', (self._tr_loss - self._logging_loss)/self.config.logging_steps, self._global_step)
-                self._logging_loss = self._tr_loss
+                #mlflow.log_metric('lr', self.scheduler.get_lr()[0], self._global_step)
+                #mlflow.log_metric('loss-accumulated', (self._tr_loss - self._logging_loss)/self.config.logging_steps, self._global_step)
+                #self._logging_loss = self._tr_loss
                     
         mlflow.log_metric("training loss", self._tr_loss)
         self.log("loss", loss,
@@ -252,16 +256,22 @@ class BERTQA(pl.LightningModule):
                                 start_logits = to_list(outputs[0][i]),
                                 end_logits   = to_list(outputs[1][i]))
             self.test_results.append(result)           
-            
+        
+        return self.test_results
+
+    def test_epoch_end(self, outputs):
         # Compute predictions
-        output_prediction_file = os.path.join(self.config.output_dir, "predictions_{}.json".format(self.config.predict_file_name))
-        output_nbest_file = os.path.join(self.config.output_dir, "nbest_predictions_{}.json".format(self.config.predict_file_name))
+        #output_prediction_file = os.path.join(self.config.output_dir, "predictions_{}.json".format(self.config.predict_file_name))
+        output_prediction_file = os.path.join(self.config.output_dir, "predictions.json")
+        output_nbest_file = os.path.join(self.config.output_dir, "nbest_predictions.json")
+        #output_nbest_file = os.path.join(self.config.output_dir, "nbest_predictions_{}.json".format(self.config.predict_file_name))
         if self.config.version_2_with_negative:
-            output_null_log_odds_file = os.path.join(self.config.output_dir, "null_odds_{}.json".format(self.config.predict_file_name))
+            #output_null_log_odds_file = os.path.join(self.config.output_dir, "null_odds_{}.json".format(self.config.predict_file_name))
+            output_null_log_odds_file = os.path.join(self.config.output_dir, "null_odds.json")
         else:
             output_null_log_odds_file = None
 
-        logging.info("******Starting to write predictions in the batch #%d*******", batch_idx)
+        logging.info("******Starting to write predictions*******")
         if self.config.model_type in ['xlnet', 'xlm']:
             # XLNet uses a more complex post-processing procedure
             write_predictions_extended(self.examples, self.features, self.test_results, 
@@ -271,7 +281,7 @@ class BERTQA(pl.LightningModule):
                                     self.model.config.start_n_top, self.model.config.end_n_top,
                                     self.config.version_2_with_negative, self.tokenizer, self.config.verbose_logging)
         else:
-            write_predictions(self.examples, self.features, self.test_results, self.conifg.n_best_size,
+            write_predictions(self.examples, self.features, self.test_results, self.config.n_best_size,
                             self.config.max_answer_length, self.config.do_lower_case, output_prediction_file,
                             output_nbest_file, output_null_log_odds_file, self.config.verbose_logging,
                             self.config.version_2_with_negative, self.config.null_score_diff_threshold)
@@ -301,14 +311,20 @@ class BERTQA(pl.LightningModule):
         scheduler = scheduler = get_linear_schedule_with_warmup(optimizer, 
                             num_warmup_steps=self.config.warmup_steps, 
                             num_training_steps=self.t_total)
+        # set the update step for the scheduler
+        scheduler = {
+           'scheduler': scheduler,
+        'interval': 'step', # or 'epoch'
+        'frequency': 1
+        }
         return [optimizer], [scheduler]
     
 
 def main():
     args = ModelConfig()
-    do_train = True
-    do_test = False
-    
+    do_train = False 
+    do_test = True 
+
     if os.path.exists(args.output_dir) and os.listdir(args.output_dir) \
             and args.do_train and not args.overwrite_output_dir:
         raise ValueError("Output directory ({}) already exists and is not empty. \
@@ -320,8 +336,6 @@ def main():
                         level = logging.INFO if args.local_rank in [-1, 0] else logging.WARN,
                         filename=os.path.join(args.log_dir, "pl_training.log"),
                         filemode='w')
-    # Set seed
-    set_seed(args)    
 
     args.model_type = args.model_type.lower()
     config_class, model_class, tokenizer_class = MODEL_CLASSES[args.model_type]
@@ -331,8 +345,15 @@ def main():
     model = model_class.from_pretrained(args.model_name_or_path, config=config)
 
     logger.info("Training/evaluation parameters %s", args)
-    
+
     if do_train:
+        args.n_gpu = 1
+        args.per_gpu_train_batch_size = 8
+        args.gradient_accumulation_steps = 32
+        # Set seed
+        set_seed(args)    
+        # Set seed
+        set_seed(args)    
         cur_time = dt.datetime.now().strftime("%H-%M-%S-%Y-%m-%d")
         
         ckpt_callback_loss = ModelCheckpoint(
@@ -340,7 +361,15 @@ def main():
                     filename=f'bert_QA_{cur_time}',
                     mode="min"
         )
+        lr_monitor = LearningRateMonitor(logging_interval='step')
         
+
+        trainer = pl.Trainer(max_epochs=1, 
+                            callbacks=[ckpt_callback_loss, lr_monitor],
+                            accelerator="gpu", devices=[7],
+                            log_every_n_steps=50,
+                            enable_progress_bar=True
+                            )
         # train_loader
         train_dataset = load_and_cache_examples(args, 
                                                 tokenizer, 
@@ -348,9 +377,9 @@ def main():
         logger.info("  Num examples = %d", len(train_dataset))
         args.train_batch_size = args.per_gpu_train_batch_size * max(1, args.n_gpu)
         train_iter = DataLoader(train_dataset, shuffle=True, 
-                                    batch_size=args.train_batch_size,
-                                    num_workers=4,
-                                    drop_last=True)
+                                batch_size=args.train_batch_size,
+                                num_workers=4,
+                                drop_last=True)
         
         logging.info("The number of training batchs is %d", len(train_iter))
         # t_toal = len(train_iter) * config.num_train_epochs # total steps
@@ -363,13 +392,7 @@ def main():
             t_total = len(train_iter) // args.gradient_accumulation_steps * args.num_train_epochs
             logging.info("Total optimization steps = %d", t_total)
 
-
-        trainer = pl.Trainer(max_epochs=1, 
-                            callbacks=ckpt_callback_loss,
-                            #accelerator="gpu", devices=[0],
-                            log_every_n_steps=50,
-                            enable_progress_bar=True
-                            )
+        
         
         mlflow.set_tracking_uri("http://192.168.11.95:5002")
         mlflow.set_experiment("BERT_QA_Lightning")
@@ -382,11 +405,19 @@ def main():
         print("training has been ended")
 
     if do_test:
+        trainer = pl.Trainer(max_epochs=1, 
+                            accelerator="gpu", devices=[7],
+                            log_every_n_steps=50,
+                            enable_progress_bar=True
+                            )
         # load the fine_tuned model
-        load_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache',\
-                    '')
-        bert_ft = BERTQA.load_from_checkpoint(load_path)
-        trainer.test(bert_qa) # without fine-tuning
+        model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache') 
+        ckpt_name = os.listdir(model_path)[-1]
+        logging.info("Using the fine-tuned model %s", ckpt_name)
+        print(f"Using the model {ckpt_name}")
+        load_path = os.path.join(model_path, ckpt_name)
+        bert_ft = BERTQA.load_from_checkpoint(load_path, model=model)
+        trainer.test(bert_ft) # without fine-tuning
         print("test ended")
     
 if __name__ == "__main__":
