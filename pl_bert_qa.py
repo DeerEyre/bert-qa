@@ -113,17 +113,17 @@ class BERTQA(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self.automatic_optimization = False
+        self._global_step = 0
+        self._tr_loss = 0.0
+        self._logging_loss = 0.0
         self.model = model
         self.model.zero_grad()
         self.config = config 
         self.tokenizer = tokenizer
         self.test_results = []
-        
         # training parameters
         self.t_total = t_total
-        self.global_step = 0
-        self.tr_loss = 0.0
-        self.logging_loss = 0.0
+
         
     
     def forward(self, inputs):
@@ -191,34 +191,34 @@ class BERTQA(pl.LightningModule):
 
         mlflow.log_metric("loss", loss)
         
-        self.tr_loss += loss.item()
+        self._tr_loss += loss.item()
         if (batch_idx + 1) % self.config.gradient_accumulation_steps == 0:
             self.optimizer.step()
             self.scheduler.step()  # Update learning rate schedule
             self.model.zero_grad()
-            self.global_step += 1
+            self._global_step += 1
             
-            if self.config.logging_steps > 0 and self.global_step % self.config.logging_steps == 0:
+            if self.config.logging_steps > 0 and self._global_step % self.config.logging_steps == 0:
                 # Log metrics
                 # if args.local_rank == -1 and args.evaluate_during_training:  # Only evaluate when single GPU otherwise metrics may not average well
                 #     results = evaluate(args, model, tokenizer)
                 #     for key, value in results.items():
                 #         tb_writer.add_scalar('eval_{}'.format(key), value, global_step)
-                mlflow.log_metric('lr', self.scheduler.get_lr()[0], self.global_step)
-                mlflow.log_metric('(tr_loss - log_loss)/log_steps', (self.tr_loss - self.logging_loss)/self.config.logging_steps, self.global_step)
-                self.logging_loss = self.tr_loss
+                mlflow.log_metric('lr', self.scheduler.get_lr()[0], self._global_step)
+                mlflow.log_metric('(tr_loss - log_loss)/log_steps', (self._tr_loss - self._logging_loss)/self.config.logging_steps, self._global_step)
+                self._logging_loss = self._tr_loss
                     
-        mlflow.log_metric("training loss", self.tr_loss)
+        mlflow.log_metric("training loss", self._tr_loss)
         self.log("loss", loss,
                 on_step=True, prog_bar=True, logger=True)
-        self.log("training loss", self.tr_loss,
+        self.log("training loss", self._tr_loss,
                 on_epoch=True, prog_bar=True, logger=True)
         # self.log_dict({"loss": loss, "training loss": tr_loss}, prog_bar=True, logger=True)
         #print("loss = ", loss)
         #print("training loss = ", tr_loss)
-        logger.info(" global_step = %s, average loss = %s", self.global_step, self.tr_loss)
+        logger.info(" global_step = %s, average loss = %s", self._global_step, self._tr_loss)
         
-        return {"loss": loss, 'tr_loss': self.tr_loss}
+        return {"loss": loss, 'tr_loss': self._tr_loss}
     
     def test_step(self, batch, batch_idx):
         # Eval!
