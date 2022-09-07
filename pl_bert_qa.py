@@ -124,6 +124,7 @@ class BERTQA(pl.LightningModule):
         # training parameters
         self.t_total = t_total
 
+
         
     
     def forward(self, inputs):
@@ -160,11 +161,11 @@ class BERTQA(pl.LightningModule):
         test_iter = DataLoader(dataset, shuffle=False, 
                                     batch_size=self.config.eval_batch_size,
                                     num_workers=4,
-                                    drop_last=True)
+                                    drop_last=False)
         logging.info("The number of test batchs is %d", len(test_iter))
-
         self.examples = examples 
         self.features = features
+        
         return test_iter
 
     def training_step(self, batch, batch_idx):
@@ -255,9 +256,11 @@ class BERTQA(pl.LightningModule):
                 result = RawResult(unique_id    = unique_id,
                                 start_logits = to_list(outputs[0][i]),
                                 end_logits   = to_list(outputs[1][i]))
-            self.test_results.append(result)           
+            #print(result)
+            self.test_results.append(result)   
+            #print("The length of the test result is ", len(self.test_results))
         
-        return self.test_results
+        #return result
 
     def test_epoch_end(self, outputs):
         # Compute predictions
@@ -285,7 +288,7 @@ class BERTQA(pl.LightningModule):
                             self.config.max_answer_length, self.config.do_lower_case, output_prediction_file,
                             output_nbest_file, output_null_log_odds_file, self.config.verbose_logging,
                             self.config.version_2_with_negative, self.config.null_score_diff_threshold)
-        logging.info("******End of writing predictions in the batch #%d*******", batch_idx)
+        logging.info("******End of writing predictions*******")
         
         # Evaluate with the official SQuAD script
         evaluate_options = EVAL_OPTS(data_file=self.config.predict_file,
