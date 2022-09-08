@@ -48,3 +48,90 @@
 09/05/2022 09:44:37 - INFO - __main__ -     Total train batch size (w. parallel, distributed & accumulation) = 32
 09/05/2022 09:44:37 - INFO - __main__ -     Gradient Accumulation steps = 1
 09/05/2022 09:44:37 - INFO - __main__ -     Total optimization steps = 2490
+09/05/2022 10:06:42 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-50
+09/05/2022 10:28:02 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-100
+09/05/2022 10:49:35 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-150
+09/05/2022 11:11:18 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-200
+09/05/2022 11:32:45 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-250
+09/05/2022 11:54:26 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-300
+09/05/2022 12:16:00 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-350
+09/05/2022 12:37:23 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-400
+09/05/2022 12:58:22 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-450
+09/05/2022 13:19:24 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-500
+09/05/2022 13:40:34 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-550
+09/05/2022 14:01:49 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-600
+09/05/2022 14:23:07 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-650
+09/05/2022 14:44:15 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-700
+09/05/2022 15:05:30 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-750
+09/05/2022 15:26:36 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-800
+09/05/2022 15:47:37 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-850
+09/05/2022 16:08:41 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-900
+09/05/2022 16:29:38 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-950
+09/05/2022 16:50:35 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1000
+09/05/2022 17:11:25 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1050
+09/05/2022 17:32:19 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1100
+09/05/2022 17:53:15 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1150
+09/05/2022 18:13:58 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1200
+09/05/2022 18:34:44 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1250
+09/05/2022 18:55:37 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1300
+09/05/2022 19:16:28 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1350
+09/05/2022 19:37:12 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1400
+09/05/2022 19:58:10 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1450
+09/05/2022 20:19:05 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1500
+09/05/2022 20:40:02 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1550
+09/05/2022 21:00:54 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1600
+09/05/2022 21:21:49 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1650
+09/05/2022 21:42:43 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1700
+09/05/2022 22:03:45 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1750
+09/05/2022 22:24:41 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1800
+09/05/2022 22:45:44 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1850
+09/05/2022 23:06:47 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1900
+09/05/2022 23:27:55 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-1950
+09/05/2022 23:49:01 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-2000
+09/06/2022 00:10:09 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-2050
+09/06/2022 00:31:12 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-2100
+09/06/2022 00:52:15 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-2150
+09/06/2022 01:13:25 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-2200
+09/06/2022 01:34:33 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-2250
+09/06/2022 01:58:14 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-2300
+09/06/2022 02:30:34 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-2350
+09/06/2022 02:51:34 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-2400
+09/06/2022 03:13:49 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output/checkpoint-2450
+09/06/2022 03:31:14 - INFO - __main__ -    global_step = 2490, average loss = 0.4195645262857342
+09/06/2022 03:31:14 - INFO - __main__ -   Saving model checkpoint to /workspace/bert-qa/output
+09/06/2022 03:31:16 - INFO - pytorch_transformers.modeling_utils -   loading configuration file /workspace/bert-qa/output/config.json
+09/06/2022 03:31:16 - INFO - pytorch_transformers.modeling_utils -   Model config {
+  "attention_probs_dropout_prob": 0.1,
+  "directionality": "bidi",
+  "finetuning_task": null,
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 768,
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "layer_norm_eps": 1e-12,
+  "max_position_embeddings": 512,
+  "num_attention_heads": 12,
+  "num_hidden_layers": 12,
+  "num_labels": 2,
+  "output_attentions": false,
+  "output_hidden_states": false,
+  "pad_token_id": 0,
+  "pooler_fc_size": 768,
+  "pooler_num_attention_heads": 12,
+  "pooler_num_fc_layers": 3,
+  "pooler_size_per_head": 128,
+  "pooler_type": "first_token_transform",
+  "pruned_heads": {},
+  "torchscript": false,
+  "type_vocab_size": 2,
+  "vocab_size": 21128
+}
+
+09/06/2022 03:31:16 - INFO - pytorch_transformers.modeling_utils -   loading weights file /workspace/bert-qa/output/pytorch_model.bin
+09/06/2022 03:31:19 - INFO - pytorch_transformers.tokenization_utils -   Model name '/workspace/bert-qa/output' not found in model shortcut name list (bert-base-uncased, bert-large-uncased, bert-base-cased, bert-large-cased, bert-base-multilingual-uncased, bert-base-multilingual-cased, bert-base-chinese, bert-base-german-cased, bert-large-uncased-whole-word-masking, bert-large-cased-whole-word-masking, bert-large-uncased-whole-word-masking-finetuned-squad, bert-large-cased-whole-word-masking-finetuned-squad, bert-base-cased-finetuned-mrpc). Assuming '/workspace/bert-qa/output' is a path or url to a directory containing tokenizer files.
+09/06/2022 03:31:19 - INFO - pytorch_transformers.tokenization_utils -   loading file /workspace/bert-qa/output/vocab.txt
+09/06/2022 03:31:19 - INFO - pytorch_transformers.tokenization_utils -   loading file /workspace/bert-qa/output/added_tokens.json
+09/06/2022 03:31:19 - INFO - pytorch_transformers.tokenization_utils -   loading file /workspace/bert-qa/output/special_tokens_map.json
+09/06/2022 03:31:19 - INFO - pytorch_transformers.tokenization_utils -   loading file /workspace/bert-qa/output/tokenizer_config.json
+09/06/2022 03:31:19 - INFO - __main__ -   Results: {}

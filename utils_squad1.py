@@ -511,6 +511,7 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
 
     unique_id_to_result = {}
     for result in all_results:
+        #print("result unique_id =", result.unique_id)
         unique_id_to_result[result.unique_id] = result
 
     _PrelimPrediction = collections.namedtuple(  # pylint: disable=invalid-name
@@ -525,6 +526,7 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
 
     for (example_index, example) in enumerate(all_examples):
         features = example_index_to_features[example_index]
+        #print("features length = ", len(features))
 
         prelim_predictions = []
         # keep track of the minimum score of null start+end of position 0
@@ -533,6 +535,8 @@ def write_predictions(all_examples, all_features, all_results, n_best_size,
         null_start_logit = 0  # the start logit at the slice with min null score
         null_end_logit = 0  # the end logit at the slice with min null score
         for (feature_index, feature) in enumerate(features):
+            #print(feature)
+            #print(feature.unique_id)
             result = unique_id_to_result[feature.unique_id]
             start_indexes = _get_best_indexes(result.start_logits, n_best_size)
             end_indexes = _get_best_indexes(result.end_logits, n_best_size)
